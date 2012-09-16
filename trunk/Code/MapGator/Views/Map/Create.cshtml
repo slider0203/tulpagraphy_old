@@ -1,0 +1,61 @@
+﻿@{
+    ViewBag.Title = "Create Map";
+}
+
+<h2>Create</h2>
+<div>
+	<form class="create-map-form">
+		<fieldset>
+			<legend>General</legend>
+			<div>
+				<label for="title">Title: </label>
+				<input name="title" class="long" data-bind="value: title" />
+			</div>
+		</fieldset>
+		<fieldset>
+			<legend>Dimensions</legend>
+			<div>
+				<label>
+					<span>Tile Diameter: </span>
+					<span style="font-weight:bold;" data-bind="text: tileDiameter"></span>
+					<span>pixels.</span>
+				</label>
+			</div>
+			<div>
+				<input name="height" type="number" data-bind="value: height.tileCount, attr: { max: height.max, min: height.min }" />
+				<label for="height">
+					<span> tiles high. (</span>
+					<span style="font-weight:bold;" data-bind="text: height.pixelSize"></span>
+					<span>pixels )</span>
+				</label>
+			</div>
+			<div>
+				<input name="width" type="number" data-bind="value: width.tileCount, attr: { max: width.max, min: width.min }" />
+				<label for="width">
+					<span> tiles wide. (</span>
+					<span style="font-weight:bold;" data-bind="text: width.pixelSize"></span>
+					<span>pixels )</span>
+				</label>
+			</div>
+		</fieldset>
+		<fieldset>
+			<legend>Defaults</legend>
+			<div>
+				<label for="terrain">Terrain: </label>
+				<select name="terrain" data-bind="options: terrains, optionsText: 'name', value: defaultTerrain" ></select>
+			</div>
+			<div>
+				<label for="embellishment">Embellishment: </label>
+				<select name="terrain" data-bind="options: embellishments, optionsText: 'name', value: defaultEmbellishment, optionsCaption: 'None'" ></select>
+			</div>
+		</fieldset>
+		<input style="float: right;" type="button" value="Create!" data-bind="click: create" />
+	</form>
+</div>
+
+<script src="@Url.Content("~/Scripts/models/map.js")"></script>
+<script>
+	var vm = mapFactory.constructCreateMapViewModel();
+
+	ko.applyBindings(vm);
+</script>

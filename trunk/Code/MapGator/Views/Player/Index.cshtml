@@ -1,0 +1,148 @@
+﻿@{
+    ViewBag.Title = "Player Sheet Demo";
+}
+
+<section style="float:left;">
+    <h2><label data-bind="text:Name" ></label> (<label data-bind="text:Race" ></label>)</h2>
+</section>
+
+<section style="float:right;">
+    <div data-bind="template: {name:'List-Template', foreach: Class}" ></div>
+</section>
+
+<section class="exerience" style="clear:left;">
+    <label>Experience: </label>
+    <label data-bind="text:Experience"></label>
+</section>
+
+<section class="player-map body">
+    <section class="toolbar">
+        <section class="icon">
+            Move<br/>
+            Attack<br/>
+            Activate<br/>
+        </section>
+    </section>
+</section>
+<section class="player-status">
+    <section class="health" style="float: left; width: 300px" >
+        <label style="float:left;">Health: </label>
+        <label style="float:left;" data-bind="text:Health"></label>
+    </section>
+    <section class="mana" style="float: left; width: 300px">
+        <label>Mana: </label>
+        <label data-bind="text:Mana"></label>
+    </section>
+    <section class="actions" style="float: left; width: 300px">
+        <label>Action Points: </label>
+        <label data-bind="text:ActionPoints"></label>
+    </section>
+    <section class="active-effects" style="float: right">
+        <label>Active Effects: </label>
+    </section>
+    <section style="float:right;">
+        <label data-bind="text:ActiveEffect"></label>
+    </section>
+    <div style="clear: both"></div>
+</section>
+
+<section id="player-sheet">
+    
+    <section id="Stats">  
+        <h3>Stats</h3>
+        <div data-bind="template: {name:'List-Template', foreach: Stat}">
+        </div>
+    </section>
+
+    <section class="attack" >
+        <h3>Attacks</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Attack Rating</th>
+                    <th>Range</th>
+                    <th>Minimum Damage</th>
+                    <th>Maximum Damage</th>
+                    <th>Mana Cost</th>
+                </tr>
+            </thead>
+            <tbody data-bind="template: {name:'Attacks-Template', foreach: Attack}">
+            </tbody>
+        </table>
+    </section>
+
+    
+    <section class="defense">
+        <h3>Defenses</h3>
+        <div data-bind="template: {name:'List-Template', foreach: Defense}">
+        </div>
+    </section>
+    
+    <section class="inventory">
+        <h3>Inventory</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Equiped</th>
+                </tr>
+            </thead>
+            <tbody data-bind="template: {name:'Inventory-Template', foreach: Item}">
+            </tbody>
+        </table>
+    </section>
+    
+    <section class="abilities">
+        <h3>Class Abilities</h3>
+        <div data-bind="template: {name:'Abilities-Template', foreach:ClassAbility}" />
+    </section>
+
+    <section class="skills">
+        <h3>Skills</h3>
+        <div data-bind="template: {name:'List-Template', foreach: Skill}">
+        </div>
+    </section>
+    
+</section>
+
+<script type="text/html" id="List-Template">
+    <div style="width: 200px;">
+        <label data-bind="text:Name"/>:
+        <label style="float:right;" data-bind="text:Value"/>
+    </div>
+</script>
+
+<script type="text/html" id="Abilities-Template">
+    <div>
+        <label data-bind="text:Name"/>:<br/>
+        <label data-bind="text:Value"/>
+    </div>
+</script>
+
+<script type="text/html" id="Attacks-Template">
+    <tr>
+        <td data-bind="text:Name"></td>
+        <td style="text-align:right;" data-bind="text:AttackRating"></td>
+        <td style="text-align:right;" data-bind="text:AttackRange"></td>
+        <td style="text-align:right;" data-bind="text:MinDamage"></td>
+        <td style="text-align:right;" data-bind="text:MaxDamage"></td>
+        <td style="text-align:right;" data-bind="text:ManaCost"></td>
+    </tr>
+</script>
+
+<script type="text/html" id="Inventory-Template">
+    <tr>
+        <td data-bind="text:Name"></td>
+        <td><input data-bind="checked:Equiped" type="checkbox" /></td>
+    </tr>
+</script>
+
+<script type="text/javascript">
+    var CharacterViewModel = {};
+
+    $.getJSON('Player/GetCharacter', function (result) {
+        CharacterViewModel = ko.mapping.fromJS(result.Data);
+        ko.applyBindings(CharacterViewModel);
+    });
+</script>

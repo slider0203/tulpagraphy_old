@@ -1,0 +1,29 @@
+﻿@model PiranhaGator.ViewModels.CharacterStatsViewModel
+
+<section id="stats">
+    <h3>Stats</h3>
+    <section>
+        @Html.LabelFor(model => model.Strength)
+        @Html.DisplayFor(model => model.Strength)    
+    </section>
+    <section>
+        @Html.LabelFor(model => model.Dexterity)
+        @Html.DisplayFor(model => model.Dexterity)    
+    </section>
+    <section>
+        @Html.LabelFor(model => model.Constitution)
+        @Html.DisplayFor(model => model.Constitution)    
+    </section>
+    <section>
+        @Html.LabelFor(model => model.Intelligence)
+        @Html.DisplayFor(model => model.Intelligence)    
+    </section>
+    <section>
+        @Html.LabelFor(model => model.Spirit)
+        @Html.DisplayFor(model => model.Spirit)    
+    </section>
+    <section>
+        @Html.LabelFor(model => model.Charisma)
+        @Html.DisplayFor(model => model.Charisma)    
+    </section>
+</section>

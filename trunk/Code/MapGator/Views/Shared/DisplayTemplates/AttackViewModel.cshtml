@@ -1,0 +1,18 @@
+﻿@model PiranhaGator.ViewModels.AttackViewModel
+
+
+<tr>
+    <td>
+        @Html.DisplayFor(model => model.Name)        
+    </td>
+    <td>
+        @Html.DisplayFor(model => model.AttackRange)       
+    </td>
+    <td>
+        @Html.DisplayFor(model => model.MinDamage)-@Html.DisplayFor(model => model.MaxDamage)
+        
+    </td>
+    <td>
+        @Html.DisplayFor(model => model.ManaCost)
+    </td>
+</tr>

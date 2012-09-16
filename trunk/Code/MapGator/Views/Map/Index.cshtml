@@ -1,0 +1,42 @@
+﻿@{
+	ViewBag.Title = "Index";
+}
+<div class="index-map">
+	<h2>Maps</h2>
+	<ul class="actions">
+		<li class="full-line-height">I want to...</li>
+		<li><a class="button create-map" href="/Map/Create">Create A Map</a></li>
+		<li><a class="button clear" href="#" data-bind="click: clearMaps">Clear Maps</a></li>
+	</ul>
+	<table class="existing-maps">
+		<thead>
+			<tr>
+				<td class="column map-id">ID / View</td>
+				<td class="column map-name">Name</td>
+				<td class="column delete-action"></td>
+			</tr>
+		</thead>
+		<tbody data-bind="foreach: maps">
+			<tr>
+				<td>
+					<a class="button" data-bind="attr: { href: '/Map/Edit/' + id()}, text: id ">
+					</a>
+				</td>
+				<td>
+					<span data-bind="text: name"></span>
+				</td>
+				<td>
+					<a href="#" class="button" data-bind="click: $root.deleteMap">Delete</a>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+
+
+<script src="@Url.Content("~/Scripts/models/map.js")"></script>
+<script>
+	var vm = mapFactory.constructMapIndexViewModel();
+
+	ko.applyBindings(vm);
+</script>
