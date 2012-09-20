@@ -33,10 +33,10 @@
 	</table>
 </div>
 
-
-<script src="@Url.Content("~/Scripts/models/map.js")"></script>
+<script src="/Scripts/models/entity-models.js"></script>
+<script src="/Scripts/models/page-models.js"></script>
 <script>
-	var vm = mapFactory.constructMapIndexViewModel();
+	var vm = tg.factories.pageModelFactory.constructMapIndexModel();
 
 	ko.applyBindings(vm);
 </script>

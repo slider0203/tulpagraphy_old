@@ -1,6 +1,17 @@
 ﻿/* File Created: June 18, 2012 hello moto*/
-var mapFactory =
+tg.factories.mapEntityFactory =
 	(function (ko, _, $, tg) {
+		var terrains;
+		var embellishments;
+
+		function _getTerrains() {
+			return new MapContext().getTerrains();
+		};
+
+		function _getEmbellishments() {
+			return new MapContext().getEmbellishments();
+		};
+
 		function MapViewModel(data) {
 			var self = this;
 
@@ -101,7 +112,7 @@ var mapFactory =
 				}
 
 				if (!tileData.terrain) {
-					tileData.terrain = terrains[0];
+					tileData.terrain = _getTerrains[0];
 				}
 
 				tileData.xIndex = tileData.x / (.75 * self.tileDiameter());
@@ -265,16 +276,16 @@ var mapFactory =
 			},
 
 			_getTerrainById: function (terrainId) {
-				var foundTerrain = _.find(terrains,
+				var foundTerrain = _.find(_getTerrains(),
 					function (t) {
 						return t.id === terrainId;
 					});
 
-				return foundTerrain ? foundTerrain : terrains[0];
+				return foundTerrain ? foundTerrain : _getTerrains()[0];
 			},
 
 			_getEmbellishmentById: function (embellishmentId) {
-				return _.find(embellishments, function (embellishment) { return embellishment.id() == embellishmentId; });
+				return _.find(_getEmbellishments(), function (embellishment) { return embellishment.id() == embellishmentId; });
 			},
 
 			_indexTiles: function () {
@@ -310,7 +321,7 @@ var mapFactory =
 			self._y = data.y;
 			self.xIndex = data.xIndex;
 			self.yIndex = data.yIndex;
-			self.terrain = ko.observable(data.terrain ? data.terrain : terrains[0]);
+			self.terrain = ko.observable(data.terrain ? data.terrain : _getTerrains()[0]);
 			self.embellishment = ko.observable(data.embellishment);
 			self.observers = {};
 			self.points = data.points;
@@ -340,237 +351,6 @@ var mapFactory =
 				}
 
 				return this._surroundingTiles;
-			}
-		};
-
-		function EditMapViewModel(mapViewModel) {
-			var self = this;
-
-			self.originalModel = mapViewModel;
-
-			self.name = mapViewModel.name;
-			self.loading = ko.observable(false);
-			self.loadingMessage = ko.observable('');
-			self.gridOpacity = ko.observable(.7);
-			self.width = mapViewModel.width;
-			self.height = mapViewModel.height;
-			self.tiles = mapViewModel.tiles;
-			self.tileTerrainChanged = mapViewModel.tileTerrainChanged;
-			self.tileEmbellishmentChanged = mapViewModel.tileEmbellishmentChanged;
-			$printImagePopup = $('.export-image-viewport');
-			self.printImageModel = new PrintImageViewModel($printImagePopup, self.originalModel, $('.map.view'), $('.image-canvas')[0], { gridOpacity: this.gridOpacity });
-
-			self.pointsString = function () {
-				return self.originalModel.pointsString();
-			};
-
-			self.toolSets = ko.observableArray(self.getInitialToolSets());
-			self.selectedTool = ko.observable(null);
-
-			self.setSelectedTool = function (newSelectedTool) {
-				if (self.selectedTool()) {
-					self.selectedTool().selected(false);
-				}
-				self.selectedTool(newSelectedTool);
-				newSelectedTool.selected(true);
-			};
-
-			self.applyTool = function (tile) {
-				if (self.selectedTool()) {
-					self.selectedTool().applyToTile(tile);
-				}
-			};
-
-			self.onMouseDownOnTile = function ($tile, e) {
-				var handled = false;
-
-				if (e.which === 1) {
-					var tile = self.originalModel.getTileByCoordinates(+$tile.attr('data-x'), +$tile.attr('data-y'));
-					self.applyTool(tile);
-					handled = true;
-				}
-
-				return handled;
-			};
-
-			self.onMouseOverTile = function ($tile, e) {
-				var handled = false;
-
-				if (e.which === 1) {
-					var tile = self.originalModel.getTileByCoordinates(+$tile.attr('data-x'), +$tile.attr('data-y'));
-					self.applyTool(tile);
-					handled = true;
-				}
-
-				return handled;
-			};
-
-			self.onScroll = function ($clip, e) {
-				tg.log($clip.scrollLeft(), $clip.scrollTop(), $clip, e);
-			};
-
-			self.saveMap = function (model) {
-				self.loading(true);
-
-				setTimeout(function () {
-
-					var context = new MapContext();
-
-					var savedMap = context.saveMap(self.originalModel.convertToData());
-					self.originalModel.id(savedMap.id);
-					self.originalModel.name(savedMap.name);
-
-					self.loading(false);
-				}, 300);
-			};
-		};
-
-		EditMapViewModel.prototype = {
-			getInitialToolSets: function () {
-				terrainToolSet = new ToolSet('Terrains',
-					_.map(terrains, function (terrain) {
-						return new TerrainTool(terrain);
-					}));
-
-				embellishmentToolSet = new ToolSet('Embellishments',
-					_.map(embellishments, function (embellishment) {
-						return new EmbellishmentTool(embellishment);
-					}));
-
-				return [terrainToolSet, embellishmentToolSet];
-			}
-		};
-
-		function PrintImageViewModel($popup, mapViewModel, $mapContainer, destinationCanvas, definedOptions) {
-			var self = this;
-
-			var options = { gridOpacity: 1, exportImmediately: false };
-
-			for (var i in definedOptions) options[i] = definedOptions[i];
-
-			self.$popup = $popup;
-			self.map = mapViewModel;
-			self.gridOpacity = definedOptions.gridOpacity || function () { return 1; };
-			self.$mapContainer = $mapContainer;
-			self.destinationCanvas = destinationCanvas;
-			self.filename = ko.observable(mapViewModel.name());
-			self.working = ko.observable(false);
-
-			self.aspectRatio = ko.computed(function () {
-				return +self.map.height().pixelSize() / +self.map.width().pixelSize();
-			});
-
-			self.getContainedDimensions = function (containerHeight, containerWidth) {
-				var ar = self.aspectRatio();
-				var newWidth = +containerWidth;
-				var newHeight = ar * containerWidth;
-
-				if (newHeight > +containerHeight) {
-					newWidth = +containerHeight / ar;
-					newHeight = +newWidth * ar;
-				}
-				else {
-					newWidth = +newHeight / ar;
-				}
-
-				return {
-					height: parseInt(newHeight),
-					width: parseInt(newWidth)
-				}
-			};
-
-			self.adjustCanvasSize = function () {
-				var $canvasContainer = $popup.find('.image-container');
-
-				var dimensions = self.getContainedDimensions($canvasContainer.height(), $canvasContainer.width());
-
-				$(self.destinationCanvas).css({ 'height': dimensions.height.toString() + 'px', 'width': dimensions.width.toString() + 'px' });
-			};
-
-			self.show = function () {
-				self.$popup.fadeIn('fast', function () {
-					self.adjustCanvasSize();
-					self.refreshCanvas();
-				});
-			};
-
-			self.hide = function () {
-				self.$popup.fadeOut();
-			};
-
-			self.refreshCanvas = function () {
-				if (self.working()) {
-					return;
-				}
-
-				self.working(true);
-
-				setTimeout(function () {
-					try {
-						var ctx = self.destinationCanvas.getContext('2d');
-
-						ctx.fillStyle = 'white';
-						ctx.fillRect(0, 0, self.map.width().pixelSize(), self.map.height().pixelSize());
-						ctx.drawImage(self.$mapContainer.find("canvas.background-layer")[0], 0, 0);
-						ctx.drawImage(self.$mapContainer.find("canvas.embellishment-layer")[0], 0, 0);
-
-						ctx.strokeStyle = 'rgba(0,0,0,' + self.gridOpacity() + ')';
-
-						_.each(self.map.tiles(), function (tile) {
-							self.drawGridForTile(tile, ctx);
-						});
-					}
-					catch (ex) {
-						tg.log(ex);
-						alert('Couldn\'t refresh the canvas!');
-						var ctx = self.destinationCanvas.getContext('2d');
-						ctx.clearRect(0, 0, self.map.width().pixelSize(), self.map.height().pixelSize());
-					}
-					finally {
-						self.working(false);
-					}
-				}, 100);
-			};
-
-			self.downloadImage = function () {
-				if (self.working()) {
-					return;
-				}
-
-				self.working(true);
-
-				setTimeout(function () {
-					try {
-						self.destinationCanvas.toBlob(function (blob) {
-							saveAs(blob, self.getFullFilename());
-						});
-					}
-					catch (ex) {
-						alert('Couldn\'t download image!');
-						tg.log(ex);
-					}
-					finally {
-						self.working(false);
-					}
-				}, 100);
-			};
-
-			$(window).resize(function () { self.adjustCanvasSize(); });
-		};
-
-		PrintImageViewModel.prototype = {
-			drawGridForTile: function (tile, context) {
-				context.moveTo(+tile.x() + +tile.points[tile.points.length - 1].x, +tile.y() + +tile.points[tile.points.length - 1].y);
-				context.beginPath();
-				_.each(tile.points, function (point) {
-					context.lineTo(+tile.x() + +point.x, +tile.y() + +point.y);
-				});
-				context.closePath();
-				context.stroke();
-			},
-
-			getFullFilename: function () {
-				return this.filename() + '.png';
 			}
 		};
 
@@ -818,45 +598,6 @@ var mapFactory =
 			}
 		};
 
-		function ToolSet(title, tools) {
-			var self = this;
-
-			self.title = ko.observable(title);
-			self.tools = ko.observableArray(tools);
-		}
-
-		function EmbellishmentTool(embellishment, imageUrl) {
-			var self = this;
-
-			self.embellishment = embellishment;
-			self.imageUrl = imageUrl ? imageUrl : embellishment.imageDirectory() + 'tool.png';
-			self.selected = ko.observable(false);
-
-			self.title = ko.computed(function () {
-				return self.embellishment.name();
-			});
-
-			self.applyToTile = function (tile) {
-				tile.mapViewModel.changeTileEmbellishment(tile, self.embellishment);
-			};
-		};
-
-		function TerrainTool(terrain, imageUrl) {
-			var self = this;
-
-			self.terrain = terrain;
-			self.imageUrl = imageUrl ? imageUrl : terrain.imageDirectory + 'tool.png';
-			self.selected = ko.observable(false);
-
-			self.title = ko.computed(function () {
-				return self.terrain.name;
-			});
-
-			self.applyToTile = function (tile) {
-				tile.mapViewModel.changeTileTerrain(tile, terrain);
-			};
-		};
-
 		function Embellishment(id, name, imageDirectory, zIndex, number) {
 			var self = this;
 
@@ -1019,181 +760,96 @@ var mapFactory =
 				}
 			},
 
+			getTerrains: function () {
+				if (!terrains || !terrains.length) {
+					this._initializeTerrains();
+				}
+
+				return terrains;
+			},
+
+			getEmbellishments: function () {
+				if (!embellishments || !embellishments.length) {
+					this._initializeEmbellishments();
+				}
+
+				return embellishments;
+			},
+
+			_initializeTerrains: function () {
+				terrains = [
+				//Water and Beach
+					new Terrain('ocean', 'Ocean', 'blue', '/Content/Images/Terrain/Ocean/', 50, 15),
+					new Terrain('coast', 'Coast', 'lightblue', '/Content/Images/Terrain/Coast/', 100, 15),
+					new Terrain('beach', 'Beach', 'yellow', '/Content/Images/Terrain/Beach/', 150, 8),
+				//Dirt
+					new Terrain('drydirt', 'Dry Dirt', 'brown', '/Content/Images/Terrain/Dirt/Dry/', 300, 7),
+					new Terrain('dirt', 'Dirt', 'brown', '/Content/Images/Terrain/Dirt/', 250, 7),
+					new Terrain('wetdirt', 'Wet Dirt', 'brown', '/Content/Images/Terrain/Dirt/Wet/', 200, 7),
+				//Road
+					new Terrain('mossyroad', 'Mossy Road', 'brown', '/Content/Images/Terrain/Road/Mossy/', 550, 2),
+					new Terrain('road', 'Road', 'gray', '/Content/Images/Terrain/Road/', 550, 4),
+					new Terrain('cleanroad', 'Clean Road', 'gray', '/Content/Images/Terrain/Road/Clean/', 500, 3),
+				//Grass
+					new Terrain('grass', 'Grass', 'green', '/Content/Images/Terrain/Grass/', 700, 8),
+					new Terrain('simidrygrass', 'Simi-Dry Grass', 'green', '/Content/Images/Terrain/Grass/Simi-Dry/', 750, 6),
+					new Terrain('drygrass', 'Dry Grass', 'green', '/Content/Images/Terrain/Grass/Dry/', 650, 6),
+					new Terrain('leaves', 'Fallen Leaves', 'green', '/Content/Images/Terrain/Grass/Leaf-Litter/', 600, 6),
+				//Hills
+					new Terrain('hills', 'Hills', 'green', '/Content/Images/Terrain/Hills/', 800, 3),
+					new Terrain('deserthills', 'Desert Hills', 'yellow', '/Content/Images/Terrain/Hills/Desert/', 850, 3),
+					new Terrain('dryhills', 'Dry Hills', 'yellow', '/Content/Images/Terrain/Hills/Dry/', 900, 3),
+					new Terrain('snowhills', 'Snowy Hills', 'gray', '/Content/Images/Terrain/Hills/Snow/', 950, 3),
+
+					new Terrain('desert', 'Desert', 'yellow', '/Content/Images/Terrain/Desert/', 500, 8)
+				];
+			},
+
+			_initializeEmbellishments: function () {
+				embellishments = [
+					new Embellishment('', 'Clear', '/Content/Images/Embellishments/Clear/', 500, 1),
+					new Embellishment('forest', 'Deciduous Forest', '/Content/Images/Embellishments/Forest/Deciduous/Campaign/', 500, 9),
+					new Embellishment('densetropic', 'Dense Tropical', '/Content/Images/Embellishments/Forest/Tropical-Dense/', 500, 9),
+					new Embellishment('mediumtropic', 'Medium Tropical', '/Content/Images/Embellishments/Forest/Tropical-Medium/', 500, 6),
+					new Embellishment('sparsetropic', 'Sparse Tropical', '/Content/Images/Embellishments/Forest/Tropical-Sparse/', 500, 9),
+					new Embellishment('palm', 'Palms', '/Content/Images/Embellishments/Forest/Palm/', 500, 6),
+					new Embellishment('reef', 'Ocean Reef', '/Content/Images/Embellishments/Ocean/Reef/', 500, 4),
+					new Embellishment('rock', 'Rocks', '/Content/Images/Embellishments/Rocks/', 500, 14),
+					new Embellishment('pinetree', 'Pine Tree', '/Content/Images/Embellishments/Encounter/Pine Tree/', 500, 3),
+					new Embellishment('tree', 'Tree', '/Content/Images/Embellishments/Encounter/Tree/', 500, 6),
+
+					new Embellishment('ewwall', 'E-W Wall', '/Content/Images/Embellishments/Wall/Full/E-W/', 200, 1),
+					new Embellishment('ewwall2', 'E-W Wall 2', '/Content/Images/Embellishments/Wall/Full/E-W2/', 200, 1),
+					new Embellishment('nswall', 'N-S Wall', '/Content/Images/Embellishments/Wall/Full/N-S/', 200, 1),
+					new Embellishment('neswwall', 'NE-SW Wall', '/Content/Images/Embellishments/Wall/Full/NE-SW/', 200, 1),
+					new Embellishment('nwsewall', 'NW-SE Wall', '/Content/Images/Embellishments/Wall/Full/NW-SE/', 200, 1),
+
+					new Embellishment('ewgap', 'E-W Gap', '/Content/Images/Embellishments/Wall/Gap/E-W/', 200, 1),
+					new Embellishment('ewgap2', 'E-W Gap 2', '/Content/Images/Embellishments/Wall/Gap/E-W2/', 200, 1),
+					new Embellishment('nsgap', 'N-S Gap', '/Content/Images/Embellishments/Wall/Gap/N-S/', 200, 1),
+					new Embellishment('neswgap', 'NE-SW Gap', '/Content/Images/Embellishments/Wall/Gap/NE-SW/', 200, 1),
+					new Embellishment('nwsegap', 'NW-SE Gap', '/Content/Images/Embellishments/Wall/Gap/NW-SE/', 200, 1),
+
+					new Embellishment('newall', 'Wall', '/Content/Images/Embellishments/Wall/Segment/North-East/', 200, 1),
+					new Embellishment('sewall', 'Wall', '/Content/Images/Embellishments/Wall/Segment/South-East/', 200, 1),
+					new Embellishment('swwall', 'Wall', '/Content/Images/Embellishments/Wall/Segment/South-West/', 200, 1),
+					new Embellishment('nwwall', 'Wall', '/Content/Images/Embellishments/Wall/Segment/North-West/', 200, 1),
+					new Embellishment('ewall', 'Wall', '/Content/Images/Embellishments/Wall/Segment/East/', 200, 1),
+					new Embellishment('wwall', 'Wall', '/Content/Images/Embellishments/Wall/Segment/West/', 200, 1),
+					new Embellishment('nlwall', 'Wall', '/Content/Images/Embellishments/Wall/Segment/North-Lower/', 200, 1),
+					new Embellishment('nuwall', 'Wall', '/Content/Images/Embellishments/Wall/Segment/North-Upper/', 200, 1),
+					new Embellishment('slwall', 'Wall', '/Content/Images/Embellishments/Wall/Segment/South-Lower/', 200, 1),
+					new Embellishment('suwall', 'Wall', '/Content/Images/Embellishments/Wall/Segment/South-Upper/', 200, 1),
+				];
+			},
+
 			_saveMaps: function (maps) {
 				localStorage.maps = JSON.stringify(maps);
 			}
 		};
 
-		function MapIndexViewModel() {
-			var self = this;
-			var context = new MapContext();
-
-			self.validateContext(context);
-			var maps = _.map(context.getMaps(), function (map) {
-				return {
-					id: ko.observable(map.id),
-					name: ko.observable(map.name)
-				};
-			});
-
-			self.clearMaps = function (map) {
-				if (confirm('You really want to clear all the maps?')) {
-					var context = new MapContext();
-
-					context.clearMaps();
-					self.maps.removeAll();
-				}
-			};
-
-			self.deleteMap = function (map) {
-				self.working(true);
-
-				try {
-					var context = new MapContext();
-
-					if (context.deleteMap(map)) {
-						self.maps.remove(map);
-					}
-				}
-				catch (e) {
-					alert('Couldn\'t delete the map!');
-				}
-				finally {
-					self.working(false);
-				}
-			};
-
-			self.working = ko.observable(false);
-			self.maps = ko.observableArray(maps);
-		};
-
-		MapIndexViewModel.prototype = {
-			validateContext: function (context) {
-				if (!context.getVersion()) {
-					context.clearMaps();
-				}
-
-				context.setVersion('1');
-			}
-		};
-
-		function CreateMapViewModel() {
-			var self = this;
-
-			self.terrains = _.sortBy(terrains, function (terrain) { return terrain.name; });
-			self.defaultTerrain = ko.observable(_.find(terrains, function (terrain) { return terrain.name == 'Grass' }));
-			self.embellishments = _.sortBy(_.filter(embellishments, function (embellishment) { return embellishment.name() != "Clear" && !embellishment.name().match(/wall/gi); }), function (embellishment) { return embellishment.name(); });
-			self.defaultEmbellishment = ko.observable(null);
-			self.title = ko.observable(self.generateNewDefaultTitle());
-			self.tileDiameter = ko.observable(72);
-			self.width = {};
-			self.width.tileCount = ko.observable(80);
-			self.width.min = 1;
-			self.width.max = 100;
-			self.height = {};
-			self.height.tileCount = ko.observable(80);
-			self.height.min = 1;
-			self.height.max = 100;
-
-			self.width.pixelSize = ko.computed(function () {
-				return self.getWidthPixelSize();
-			});
-
-			self.height.pixelSize = ko.computed(function () {
-				return self.getHeightPixelSize();
-			});
-
-		};
-
-		CreateMapViewModel.prototype = {
-			create: function () {
-				try {
-					var map = this.generateMap();
-					var context = new MapContext();
-
-					context.saveMap(map);
-					window.location = '/Map/Edit/' + map.id;
-				}
-				catch (ex) {
-					var message = ex.name == 'QUOTA_EXCEEDED_ERR' ? 'Not enough room left to save this map :(' : 'Couldn\'t save the maps';
-					alert(message);
-				}
-			},
-
-			generateNewDefaultTitle: function () {
-				return 'undefined';
-			},
-
-			getHeightPixelSize: function () {
-				var self = this;
-				var height = (+self.height.tileCount() + .5) * +self.tileDiameter();
-
-				return height;
-			},
-
-			getWidthPixelSize: function () {
-				var self = this;
-				var width = (.25 * +self.tileDiameter()) + (.75 * +self.tileDiameter() * +self.width.tileCount());
-
-				return width;
-			},
-
-			generateMap: function () {
-				var map = {};
-
-				map.name = this.title();
-				map.title = this.title();
-				map.tileDiameter = this.tileDiameter();
-				map.tiles = this.generateTiles(this.width.tileCount(), this.height.tileCount(), this.tileDiameter(), this.defaultTerrain(), this.defaultEmbellishment());
-
-				return map;
-			},
-
-			generateTiles: function (width, height, diameter, defaultTerrain, defaultEmbellishment) {
-				var self = this;
-				var tiles = [];
-				var terrainId = defaultTerrain ? defaultTerrain.id : null;
-				var embellishmentId = defaultEmbellishment ? defaultEmbellishment.id() : null;
-				var xCartesian, yCartesian;
-
-				for (var xIndex = 0; xIndex < width; xIndex++) {
-					xCartesian = .75 * diameter * xIndex;
-					var isEvenRow = xIndex % 2 == 1; // yes, if it's equal to 1, the first row is index 0, not index 1
-
-					for (var yIndex = 0; yIndex < height; yIndex++) {
-						yCartesian = diameter * yIndex;
-
-						if (isEvenRow) {
-							yCartesian += diameter * .5;
-						}
-
-						tiles.push(self.generateTileData(xCartesian, yCartesian, terrainId, embellishmentId));
-					}
-				}
-
-				return tiles;
-			},
-
-			generateTileData: function (x, y, terrainId, embellishmentId) {
-				return {
-					x: x,
-					y: y,
-					terrainId: terrainId,
-					embellishmentId: embellishmentId
-				};
-			}
-		};
-
 		function MapFactory() { };
 		MapFactory.prototype = {
-			constructMapIndexViewModel: function (options) {
-				return new MapIndexViewModel();
-			},
-
-			constructCreateMapViewModel: function () {
-				return new CreateMapViewModel();
-			},
-
 			constructMapContext: function (options) {
 				return new MapContext(options);
 			},
@@ -1206,10 +862,6 @@ var mapFactory =
 				return new MapViewModel(map);
 			},
 
-			constructEditMapViewModel: function (mapViewModel) {
-				return new EditMapViewModel(mapViewModel);
-			},
-
 			constructMapBackgroundLayer: function (mapViewModel, canvas) {
 				return new MapBackgroundLayer(mapViewModel, canvas);
 			},
@@ -1219,91 +871,5 @@ var mapFactory =
 			}
 		};
 
-		var terrains = [
-		//Water and Beach
-			new Terrain('ocean', 'Ocean', 'blue', '/Content/Images/Terrain/Ocean/', 50, 15),
-			new Terrain('coast', 'Coast', 'lightblue', '/Content/Images/Terrain/Coast/', 100, 15),
-			new Terrain('beach', 'Beach', 'yellow', '/Content/Images/Terrain/Beach/', 150, 8),
-		//Dirt
-			new Terrain('drydirt', 'Dry Dirt', 'brown', '/Content/Images/Terrain/Dirt/Dry/', 300, 7),
-			new Terrain('dirt', 'Dirt', 'brown', '/Content/Images/Terrain/Dirt/', 250, 7),
-			new Terrain('wetdirt', 'Wet Dirt', 'brown', '/Content/Images/Terrain/Dirt/Wet/', 200, 7),
-		//Road
-			new Terrain('mossyroad', 'Mossy Road', 'brown', '/Content/Images/Terrain/Road/Mossy/', 550, 2),
-			new Terrain('road', 'Road', 'gray', '/Content/Images/Terrain/Road/', 550, 4),
-			new Terrain('cleanroad', 'Clean Road', 'gray', '/Content/Images/Terrain/Road/Clean/', 500, 3),
-		//Grass
-			new Terrain('grass', 'Grass', 'green', '/Content/Images/Terrain/Grass/', 700, 8),
-			new Terrain('simidrygrass', 'Simi-Dry Grass', 'green', '/Content/Images/Terrain/Grass/Simi-Dry/', 750, 6),
-			new Terrain('drygrass', 'Dry Grass', 'green', '/Content/Images/Terrain/Grass/Dry/', 650, 6),
-			new Terrain('leaves', 'Fallen Leaves', 'green', '/Content/Images/Terrain/Grass/Leaf-Litter/', 600, 6),
-		//Hills
-			new Terrain('hills', 'Hills', 'green', '/Content/Images/Terrain/Hills/', 800, 3),
-			new Terrain('deserthills', 'Desert Hills', 'yellow', '/Content/Images/Terrain/Hills/Desert/', 850, 3),
-			new Terrain('dryhills', 'Dry Hills', 'yellow', '/Content/Images/Terrain/Hills/Dry/', 900, 3),
-			new Terrain('snowhills', 'Snowy Hills', 'gray', '/Content/Images/Terrain/Hills/Snow/', 950, 3),
-
-			new Terrain('desert', 'Desert', 'yellow', '/Content/Images/Terrain/Desert/', 500, 8)
-		];
-
-		var embellishments = [
-			new Embellishment('', 'Clear', '/Content/Images/Embellishments/Clear/', 500, 1),
-			new Embellishment('forest', 'Deciduous Forest', '/Content/Images/Embellishments/Forest/Deciduous/Campaign/', 500, 9),
-			new Embellishment('densetropic', 'Dense Tropical', '/Content/Images/Embellishments/Forest/Tropical-Dense/', 500, 9),
-			new Embellishment('mediumtropic', 'Medium Tropical', '/Content/Images/Embellishments/Forest/Tropical-Medium/', 500, 6),
-			new Embellishment('sparsetropic', 'Sparse Tropical', '/Content/Images/Embellishments/Forest/Tropical-Sparse/', 500, 9),
-			new Embellishment('palm', 'Palms', '/Content/Images/Embellishments/Forest/Palm/', 500, 6),
-			new Embellishment('reef', 'Ocean Reef', '/Content/Images/Embellishments/Ocean/Reef/', 500, 4),
-			new Embellishment('rock', 'Rocks', '/Content/Images/Embellishments/Rocks/', 500, 14),
-			new Embellishment('pinetree', 'Pine Tree', '/Content/Images/Embellishments/Encounter/Pine Tree/', 500, 3),
-			new Embellishment('tree', 'Tree', '/Content/Images/Embellishments/Encounter/Tree/', 500, 6),
-
-            new Embellishment('ewwall', 'E-W Wall', '/Content/Images/Embellishments/Wall/Full/E-W/', 200, 1),
-            new Embellishment('ewwall2', 'E-W Wall 2', '/Content/Images/Embellishments/Wall/Full/E-W2/', 200, 1),
-		    new Embellishment('nswall', 'N-S Wall', '/Content/Images/Embellishments/Wall/Full/N-S/', 200, 1),
-		    new Embellishment('neswwall', 'NE-SW Wall', '/Content/Images/Embellishments/Wall/Full/NE-SW/', 200, 1),
-		    new Embellishment('nwsewall', 'NW-SE Wall', '/Content/Images/Embellishments/Wall/Full/NW-SE/', 200, 1),
-
-            new Embellishment('ewgap', 'E-W Gap', '/Content/Images/Embellishments/Wall/Gap/E-W/', 200, 1),
-            new Embellishment('ewgap2', 'E-W Gap 2', '/Content/Images/Embellishments/Wall/Gap/E-W2/', 200, 1),
-		    new Embellishment('nsgap', 'N-S Gap', '/Content/Images/Embellishments/Wall/Gap/N-S/', 200, 1),
-		    new Embellishment('neswgap', 'NE-SW Gap', '/Content/Images/Embellishments/Wall/Gap/NE-SW/', 200, 1),
-		    new Embellishment('nwsegap', 'NW-SE Gap', '/Content/Images/Embellishments/Wall/Gap/NW-SE/', 200, 1),
-
-            new Embellishment('newall', 'Wall', '/Content/Images/Embellishments/Wall/Segment/North-East/', 200, 1),
-            new Embellishment('sewall', 'Wall', '/Content/Images/Embellishments/Wall/Segment/South-East/', 200, 1),
-            new Embellishment('swwall', 'Wall', '/Content/Images/Embellishments/Wall/Segment/South-West/', 200, 1),
-		    new Embellishment('nwwall', 'Wall', '/Content/Images/Embellishments/Wall/Segment/North-West/', 200, 1),
-		    new Embellishment('ewall', 'Wall', '/Content/Images/Embellishments/Wall/Segment/East/', 200, 1),
-		    new Embellishment('wwall', 'Wall', '/Content/Images/Embellishments/Wall/Segment/West/', 200, 1),
-		    new Embellishment('nlwall', 'Wall', '/Content/Images/Embellishments/Wall/Segment/North-Lower/', 200, 1),
-		    new Embellishment('nuwall', 'Wall', '/Content/Images/Embellishments/Wall/Segment/North-Upper/', 200, 1),
-		    new Embellishment('slwall', 'Wall', '/Content/Images/Embellishments/Wall/Segment/South-Lower/', 200, 1),
-		    new Embellishment('suwall', 'Wall', '/Content/Images/Embellishments/Wall/Segment/South-Upper/', 200, 1),
-		];
-		var stoneWall = [
-		                new Embellishment('ewwall', 'E-W Wall', '/Content/Images/Embellishments/Wall/Full/E-W/', 200, 1),
-            new Embellishment('ewwall2', 'E-W Wall 2', '/Content/Images/Embellishments/Wall/Full/E-W2/', 200, 1),
-		    new Embellishment('nswall', 'N-S Wall', '/Content/Images/Embellishments/Wall/Full/N-S/', 200, 1),
-		    new Embellishment('neswwall', 'NE-SW Wall', '/Content/Images/Embellishments/Wall/Full/NE-SW/', 200, 1),
-		    new Embellishment('nwsewall', 'NW-SE Wall', '/Content/Images/Embellishments/Wall/Full/NW-SE/', 200, 1),
-
-            new Embellishment('ewgap', 'E-W Gap', '/Content/Images/Embellishments/Wall/Gap/E-W/', 200, 1),
-            new Embellishment('ewgap2', 'E-W Gap 2', '/Content/Images/Embellishments/Wall/Gap/E-W2/', 200, 1),
-		    new Embellishment('nsgap', 'N-S Gap', '/Content/Images/Embellishments/Wall/Gap/N-S/', 200, 1),
-		    new Embellishment('neswgap', 'NE-SW Gap', '/Content/Images/Embellishments/Wall/Gap/NE-SW/', 200, 1),
-		    new Embellishment('nwsegap', 'NW-SE Gap', '/Content/Images/Embellishments/Wall/Gap/NW-SE/', 200, 1),
-
-            new Embellishment('newall', 'Wall', '/Content/Images/Embellishments/Wall/Segment/North-East/', 200, 1),
-            new Embellishment('sewall', 'Wall', '/Content/Images/Embellishments/Wall/Segment/South-East/', 200, 1),
-            new Embellishment('swwall', 'Wall', '/Content/Images/Embellishments/Wall/Segment/South-West/', 200, 1),
-		    new Embellishment('nwwall', 'Wall', '/Content/Images/Embellishments/Wall/Segment/North-West/', 200, 1),
-		    new Embellishment('ewall', 'Wall', '/Content/Images/Embellishments/Wall/Segment/East/', 200, 1),
-		    new Embellishment('wwall', 'Wall', '/Content/Images/Embellishments/Wall/Segment/West/', 200, 1),
-		    new Embellishment('nlwall', 'Wall', '/Content/Images/Embellishments/Wall/Segment/North-Lower/', 200, 1),
-		    new Embellishment('nuwall', 'Wall', '/Content/Images/Embellishments/Wall/Segment/North-Upper/', 200, 1),
-		    new Embellishment('slwall', 'Wall', '/Content/Images/Embellishments/Wall/Segment/South-Lower/', 200, 1),
-		    new Embellishment('suwall', 'Wall', '/Content/Images/Embellishments/Wall/Segment/South-Upper/', 200, 1),
-		]
 		return new MapFactory();
 	})(ko, _, $, tg);

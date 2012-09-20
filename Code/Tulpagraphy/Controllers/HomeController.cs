@@ -10,7 +10,8 @@ namespace PiranhaGator.Controllers
     {
         public ActionResult Index()
         {
-            return View();
+			// For now, the home page will be the map index, however, this should stay here in case that changes.
+			return RedirectToAction("Index", "Map");
         }
     }
 }
