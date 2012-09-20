@@ -70,7 +70,8 @@
 	</div>
 </section>
 
-<script src="@Url.Content("~/Scripts/models/map.js")"> </script>
+<script src="/Scripts/models/entity-models.js"></script>
+<script src="/Scripts/models/page-models.js"></script>
 <script>
 	$(function () {
 		function getId() {
@@ -104,7 +105,7 @@
 
 		function constructSelectionLayer(map, mapFactory) {
 			var $selectionLayer = $('svg.selection-layer');
-			var tileGroup = tg.make.svg('g', { class: 'active-tiles' });
+			var tileGroup = tg.make.svgElement('g', { class: 'active-tiles' });
 
 			$selectionLayer.css('height', ((map.height().pixelSize()).toString() + 'px'));
 			$selectionLayer.css('width', ((map.width().pixelSize()).toString() + 'px'));
@@ -112,7 +113,7 @@
 			var points = map.pointsString();
 
 			_.chain(map.tiles()).map(function (tile) {
-				return tg.make.svg('polygon', {
+				return tg.make.svgElement('polygon', {
 					'points': points,
 					'transform': 'translate(' + tile.x() + ', ' + tile.y() + ')',
 					'data-x': tile.xIndex,
@@ -134,15 +135,15 @@
 
 			map.loadingMessage('Loading background layer');
 			setTimeout(function () {
-				constructBackgroundLayer(map, mapFactory);
+				constructBackgroundLayer(map, tg.factories.mapEntityFactory);
 
 				map.loadingMessage('Loading embellishment layer');
 				setTimeout(function () {
-					constructEmbellishmentLayer(map, mapFactory);
+					constructEmbellishmentLayer(map, tg.factories.mapEntityFactory);
 
 					map.loadingMessage('Loading interaction layer');
 					setTimeout(function () {
-						constructSelectionLayer(map, mapFactory);
+						constructSelectionLayer(map, tg.factories.mapEntityFactory);
 						editableMap.loading(false);
 					}, 100);
 				}, 100);
@@ -155,62 +156,13 @@
 			alert('No map to load');
 		}
 		else {
-			var map = mapFactory.constructMapViewModel(mapId);
-			var editableMap = mapFactory.constructEditMapViewModel(map);
+			var map = tg.factories.mapEntityFactory.constructMapViewModel(mapId);
+			var editableMap = tg.factories.pageModelFactory.constructEditMapModel(map);
 			ko.applyBindings(editableMap);
 
 			initialize(editableMap);
 		}
 	});
-</script>
-<script type="text/javascript">
-    ko.bindingHandlers.accordion = {
-        init: function (element, valueAccessor) {
-            var options = valueAccessor() || {};
-            setTimeout(function () {
-                $(element).accordion(options);
-            }, 0);
-
-            //handle disposal (if KO removes by the template binding)
-            ko.utils.domNodeDisposal.addDisposeCallback(element, function () {
-                $(element).accordion("destroy");
-            });
-        },
-        update: function (element, valueAccessor) {
-            var options = valueAccessor() || {};
-            $(element).accordion("destroy").accordion(options);
-        }
-    };
-
-    ko.bindingHandlers.slider = {
-    	init: function (element, valueAccessor) {
-    		var options = valueAccessor() || {};
-    		var $element = $(element);
-
-    		var moddedOptions = {
-    			slide: function (e, ui) {
-    				options.value(ui.value ? ui.value : .01);
-				}
-    		};
-
-    		for (var i in options) { moddedOptions[i] = options[i]; }
-
-    		if (moddedOptions.value) { moddedOptions.value = ko.utils.unwrapObservable(moddedOptions.value); }
-
-    		setTimeout(function () {
-    			$element.slider(moddedOptions);
-    		}, 0);
-
-    		//handle disposal (if KO removes by the template binding)
-    		ko.utils.domNodeDisposal.addDisposeCallback(element, function () {
-    			$element.slider('destroy');
-    		});
-    	},
-    	update: function (element, valueAccessor) {
-    		var value = ko.utils.unwrapObservable(valueAccessor().value);
-    		$(element).slider('value', value);
-    	}
-    };
 </script>
 <script src="/Scripts/libs/BlobBuilder.js"></script>
 <script src="/Scripts/libs/FileSaver.custom.js"></script>

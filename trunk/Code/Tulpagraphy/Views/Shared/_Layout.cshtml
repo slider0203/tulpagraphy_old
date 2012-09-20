@@ -9,6 +9,7 @@
     <script src="@Url.Content("~/Scripts/libs/jquery-ui-1.8.22.custom.min.js")"></script>
 	<script src="@Url.Content("~/Scripts/libs/knockout-2.1.0.js")"></script>
     <script src="@Url.Content("~/Scripts/libs/knockout-mapping.js")"></script>
+	<script src="/Scripts/custom-ko-bindings.js"></script>
 	<script src="@Url.Content("~/Scripts/tulpography.core.js")"></script>
     <script src="@Url.Content("~/Scripts/event-tweaks.js")"></script>
 </head>
@@ -16,14 +17,11 @@
 	<div class="page">
 		<header>
 			<div id="title">
-				<h1>
-					Map Gator</h1>
+				<h1>Tulpagraphy</h1>
 			</div>
 			<nav>
 				<ul id="menu">
-					<li>@Html.ActionLink("Home", "Index", "Home")</li>
                     <li>@Html.ActionLink("Map", "Index", "Map")</li>
-                    <li>@Html.ActionLink("Player Sheet", "Index", "Player")</li>
 				</ul>
 			</nav>
 		</header>

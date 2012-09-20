@@ -14,16 +14,17 @@ tg = (function (_) {
 	};
 
 	function Tulpagraphy() {
-		this.make = new ElementConstructor();
+		var self = this;
+		self.elementConstructor = new ElementConstructor();
 
-		this.config = {}
+		self.pageModels = {};
+		self.config = {}
+		self.factories = {};
 
-		this.config.environment = 'dev';
-		this.config.environment = 'wp';
+		self.make = {
+			svgElement: self.elementConstructor.svg
+		};
 
-		if (this.config.environment == 'dev') {
-			
-		}
 	};
 
 	Tulpagraphy.prototype = {
