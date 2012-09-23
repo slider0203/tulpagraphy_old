@@ -2,8 +2,8 @@
 	ViewBag.Title = "Edit";
 }
 
-<link href="@Url.Content("~/Content/tulpagraphy.css")" rel="stylesheet" type="text/css" />
-<link href="@Url.Content("~/Content/themes/base/jquery.ui.slider.css")" rel="stylesheet" type="text/css" />
+<link href="/Content/tulpagraphy.css" rel="stylesheet" type="text/css" />
+<link href="/Content/themes/base/jquery.ui.slider.css" rel="stylesheet" type="text/css" />
 
 <h2>Edit</h2>
 
@@ -151,17 +151,27 @@
 		};
 
 		var mapId = getId();
+		var map;
 
-		if (!mapId) {
-			alert('No map to load');
+		try {
+			if (!mapId) {
+				throw { Message: 'No map to load.' };
+			}
+			else {
+				var map = tg.factories.mapEntityFactory.constructMapViewModel(mapId);
+			}
 		}
-		else {
-			var map = tg.factories.mapEntityFactory.constructMapViewModel(mapId);
-			var editableMap = tg.factories.pageModelFactory.constructEditMapModel(map);
-			ko.applyBindings(editableMap);
+		catch (ex) {
+			alert(ex.Message + '  Let\'s see what maps you do have.');
+			tg.redirect('*map-index');
+		}
 
-			initialize(editableMap);
-		}
+		var editableMap = tg.factories.pageModelFactory.constructEditMapModel(map);
+		ko.applyBindings(editableMap);
+
+		initialize(editableMap);
+
+
 	});
 </script>
 <script src="/Scripts/libs/BlobBuilder.js"></script>

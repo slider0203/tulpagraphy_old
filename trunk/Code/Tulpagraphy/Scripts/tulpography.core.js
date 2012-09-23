@@ -32,6 +32,21 @@ tg = (function (_) {
 			if (window.console) {
 				window.console.log(Array.prototype.slice.call(arguments));
 			}
+		},
+
+		redirect: function (url) {
+			url = this._sanitizeRedirectUrl(url);
+
+			window.location.href = url;
+		},
+
+		_sanitizeRedirectUrl: function (url) {
+			if (!url) { url = ''; }
+			if (url.indexOf('*') == 0) {
+				if (url.match(/\*map-index/)) { url = '/Map'; }
+			}
+
+			return url;
 		}
 	}
 
