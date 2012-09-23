@@ -855,9 +855,16 @@ tg.factories.mapEntityFactory =
 			},
 
 			constructMapViewModel: function (id) {
-				var context = this.constructMapContext();
+				if (!id) {
+					throw { Message: 'No ID!' };
+				}
 
+				var context = this.constructMapContext();
 				var map = context.getMapById(id);
+
+				if (!map) {
+					throw { Message: 'Couldn\'t find any map with an ID of ' + id.toString() + '.' };
+				}
 
 				return new MapViewModel(map);
 			},
