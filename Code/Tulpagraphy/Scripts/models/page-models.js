@@ -332,6 +332,10 @@ tg.factories.pageModelFactory =
 			}
 
 			context.setVersion('1');
+		},
+
+		createMap: function () {
+			tg.redirect('*map-create');
 		}
 	};
 
