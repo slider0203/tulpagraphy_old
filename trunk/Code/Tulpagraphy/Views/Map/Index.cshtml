@@ -9,7 +9,7 @@
 		<li><a class="button create-map" href="#" data-bind="click: createMap">Create A Map</a></li>
 		<li><a class="button clear" href="#" data-bind="click: clearMaps">Clear Maps</a></li>
 	</ul>
-	<table class="existing-maps" data-bind="css: { hidden: maps().length <= 0 }">
+	<table class="existing-maps hidden" data-bind="css: { hidden: maps().length <= 0 }">
 		<thead>
 			<tr>
 				<td class="column map-id">ID / View</td>
@@ -32,7 +32,7 @@
 			</tr>
 		</tbody>
 	</table>
-	<div class="center" data-bind="css: { hidden: maps().length > 0 }">
+	<div class="center hidden" data-bind="css: { hidden: maps().length > 0 }">
 		<a class="no-decoration" href="#" data-bind="click: createMap">
 			<img style="border-radius:1em;" src="/Content/Images/no-maps.jpg" alt="Y U NO HAZ MAPS?" />
 			<p class="no-space">(click to make one)</p>
