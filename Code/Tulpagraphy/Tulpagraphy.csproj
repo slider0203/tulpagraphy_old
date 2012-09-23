@@ -228,6 +228,7 @@
     <Content Include="Content\Images\Embellishments\Wall\Segment\South-West\tool.png" />
     <Content Include="Content\Images\Embellishments\Wall\Segment\West\1.png" />
     <Content Include="Content\Images\Embellishments\Wall\Segment\West\tool.png" />
+    <Content Include="Content\Images\no-maps.jpg" />
     <Content Include="Content\Images\Terrain\Beach\1.png" />
     <Content Include="Content\Images\Terrain\Beach\2.png" />
     <Content Include="Content\Images\Terrain\Beach\3.png" />
@@ -454,8 +455,8 @@
     <Content Include="Scripts\libs\jquery-ui-1.8.22.custom.min.js" />
     <Content Include="Scripts\libs\jquery.js" />
     <Content Include="Scripts\models\page-models.js" />
-    <Content Include="Scripts\page\edit-map-page.js" />
-    <Content Include="Scripts\page\create-map-page.js" />
+    <Content Include="Scripts\page\map-edit-page.js" />
+    <Content Include="Scripts\page\map-create-page.js" />
     <Content Include="Scripts\page\map-index-page.js" />
     <Content Include="Scripts\tulpography.core.js" />
     <Content Include="Scripts\event-tweaks.js" />
