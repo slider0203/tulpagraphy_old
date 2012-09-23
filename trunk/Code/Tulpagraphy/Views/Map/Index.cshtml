@@ -1,14 +1,15 @@
 ﻿@{
 	ViewBag.Title = "Index";
 }
+
 <div class="index-map">
 	<h2>Maps</h2>
+	<span>I want to...</span>
 	<ul class="actions">
-		<li class="full-line-height">I want to...</li>
-		<li><a class="button create-map" href="/Map/Create">Create A Map</a></li>
+		<li><a class="button create-map" href="#" data-bind="click: createMap">Create A Map</a></li>
 		<li><a class="button clear" href="#" data-bind="click: clearMaps">Clear Maps</a></li>
 	</ul>
-	<table class="existing-maps">
+	<table class="existing-maps" data-bind="css: { hidden: maps().length <= 0 }">
 		<thead>
 			<tr>
 				<td class="column map-id">ID / View</td>
@@ -31,12 +32,14 @@
 			</tr>
 		</tbody>
 	</table>
+	<div class="center" data-bind="css: { hidden: maps().length > 0 }">
+		<a class="no-decoration" href="#" data-bind="click: createMap">
+			<img style="border-radius:1em;" src="/Content/Images/no-maps.jpg" alt="Y U NO HAZ MAPS?" />
+			<p class="no-space">(click to make one)</p>
+		</a>
+	</div>
 </div>
 
 <script src="/Scripts/models/entity-models.js"></script>
 <script src="/Scripts/models/page-models.js"></script>
-<script>
-	var vm = tg.factories.pageModelFactory.constructMapIndexModel();
-
-	ko.applyBindings(vm);
-</script>
+<script src="/Scripts/page/map-index-page.js"></script>

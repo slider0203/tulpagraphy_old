@@ -44,6 +44,7 @@ tg = (function (_) {
 			if (!url) { url = ''; }
 			if (url.indexOf('*') == 0) {
 				if (url.match(/\*map-index/)) { url = '/Map'; }
+				if (url.match(/\*map-create/)) { url = '/Map/Create'; }
 			}
 
 			return url;
