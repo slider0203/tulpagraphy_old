@@ -1,8 +1,133 @@
 ﻿/* File Created: September 17, 2012 */
 tg.factories.pageModelFactory =
 (function (tg, $, _, ko) {
+	/// Global Helpers
 	function _getNewMapContext() {
 		return tg.factories.mapEntityFactory.constructMapContext();
+	};
+
+	/// View Models
+	function CreateMapViewModel() {
+		var self = this;
+
+		var terrains = _getNewMapContext().getTerrains();
+		var embellishments = _getNewMapContext().getEmbellishments();
+
+		self.terrains = _.sortBy(terrains, function (terrain) {
+			return terrain.name;
+		});
+
+		self.defaultTerrain = ko.observable(_.find(terrains, function (terrain) {
+			return terrain.name == 'Grass'
+		}));
+
+		self.embellishments = _.sortBy(
+			_.filter(embellishments, function (embellishment) {
+				return embellishment.name() != "Clear" && !embellishment.name().match(/wall/gi);
+			}), function (embellishment) {
+			return embellishment.name();
+		});
+
+		self.defaultEmbellishment = ko.observable(null);
+		self.title = ko.observable(self.generateNewDefaultTitle());
+		self.tileDiameter = ko.observable(72);
+
+		self.width = {
+			tileCount: ko.observable(40),
+			min: 1,
+			max: 100
+		};
+
+		self.height = {
+			tileCount: ko.observable(40),
+			min: 1,
+			max: 100
+		};
+
+		self.width.pixelSize = ko.computed(function () {
+			return self.getWidthPixelSize();
+		});
+
+		self.height.pixelSize = ko.computed(function () {
+			return self.getHeightPixelSize();
+		});
+	};
+
+	CreateMapViewModel.prototype = {
+		create: function () {
+			try {
+				var map = this.generateMap();
+				var context = _getNewMapContext();
+
+				context.saveMap(map);
+				window.location = '/Map/Edit/' + map.id;
+			}
+			catch (ex) {
+				var message = ex.name == 'QUOTA_EXCEEDED_ERR' ? 'Not enough room left to save this map :(' : 'Couldn\'t save the maps';
+				alert(message);
+			}
+		},
+
+		generateNewDefaultTitle: function () {
+			return 'untitled';
+		},
+
+		getHeightPixelSize: function () {
+			var height = (+this.height.tileCount() + .5) * +this.tileDiameter();
+
+			return height;
+		},
+
+		getWidthPixelSize: function () {
+			var width = (.25 * +this.tileDiameter()) + (.75 * +this.tileDiameter() * +this.width.tileCount());
+
+			return width;
+		},
+
+		generateMap: function () {
+			var map = {};
+
+			map.name = this.title();
+			map.title = this.title();
+			map.tileDiameter = this.tileDiameter();
+			map.tiles = this.generateTiles(this.width.tileCount(), this.height.tileCount(), this.tileDiameter(), this.defaultTerrain(), this.defaultEmbellishment());
+
+			return map;
+		},
+
+		generateTiles: function (width, height, diameter, defaultTerrain, defaultEmbellishment) {
+			var self = this;
+			var tiles = [];
+			var terrainId = defaultTerrain ? defaultTerrain.id : null;
+			var embellishmentId = defaultEmbellishment ? defaultEmbellishment.id() : null;
+			var xCartesian, yCartesian;
+
+			for (var xIndex = 0; xIndex < width; xIndex++) {
+				xCartesian = .75 * diameter * xIndex;
+				var isEvenRow = xIndex % 2 == 1; // yes, if it's equal to 1, the first row is index 0, not index 1
+
+				for (var yIndex = 0; yIndex < height; yIndex++) {
+					yCartesian = diameter * yIndex;
+
+					if (isEvenRow) {
+						yCartesian += diameter * .5;
+					}
+
+					tiles.push(self.generateTileData(xCartesian, yCartesian, terrainId, embellishmentId));
+				}
+			}
+
+			return tiles;
+		},
+
+		generateTileData: function (x, y, terrainId, embellishmentId) {
+			return {
+				x: x,
+				y: y,
+				terrainId: terrainId,
+				embellishmentId: embellishmentId
+			};
+		}
 	};
 
 	function EditMapViewModel(mapViewModel) {
@@ -239,49 +364,6 @@ tg.factories.pageModelFactory =
 		}
 	};
 
-	function ToolSet(title, tools) {
-		var self = this;
-
-		self.title = ko.observable(title);
-		self.tools = ko.observableArray(tools);
-	}
-
-	function EmbellishmentTool(embellishment, imageUrl) {
-		var self = this;
-
-		self.embellishment = embellishment;
-		self.imageUrl = imageUrl ? imageUrl : embellishment.imageDirectory() + 'tool.png';
-		self.selected = ko.observable(false);
-
-		self.title = ko.computed(function () {
-			return self.embellishment.name();
-		});
-
-		self.applyToTile = function (tile) {
-			tile.mapViewModel.changeTileEmbellishment(tile, self.embellishment);
-		};
-	};
-
-	function TerrainTool(terrain, imageUrl) {
-		var self = this;
-
-		self.terrain = terrain;
-		self.imageUrl = imageUrl ? imageUrl : terrain.imageDirectory + 'tool.png';
-		self.selected = ko.observable(false);
-
-		self.title = ko.computed(function () {
-			return self.terrain.name;
-		});
-
-		self.applyToTile = function (tile) {
-			tile.mapViewModel.changeTileTerrain(tile, terrain);
-		};
-	};
-
-	function MapPageModelFactory() {
-
-	};
-
 	function MapIndexViewModel() {
 		var self = this;
 		var context = _getNewMapContext();
@@ -339,115 +421,46 @@ tg.factories.pageModelFactory =
 		}
 	};
 
-	function CreateMapViewModel() {
+	function ToolSet(title, tools) {
 		var self = this;
 
-		var terrains = _getNewMapContext().getTerrains();
-		var embellishments = _getNewMapContext().getEmbellishments();
+		self.title = ko.observable(title);
+		self.tools = ko.observableArray(tools);
+	}
 
-		self.terrains = _.sortBy(terrains, function (terrain) { return terrain.name; });
-		self.defaultTerrain = ko.observable(_.find(terrains, function (terrain) { return terrain.name == 'Grass' }));
-		self.embellishments = _.sortBy(_.filter(embellishments, function (embellishment) { return embellishment.name() != "Clear" && !embellishment.name().match(/wall/gi); }), function (embellishment) { return embellishment.name(); });
-		self.defaultEmbellishment = ko.observable(null);
-		self.title = ko.observable(self.generateNewDefaultTitle());
-		self.tileDiameter = ko.observable(72);
-		self.width = {};
-		self.width.tileCount = ko.observable(80);
-		self.width.min = 1;
-		self.width.max = 100;
-		self.height = {};
-		self.height.tileCount = ko.observable(80);
-		self.height.min = 1;
-		self.height.max = 100;
+	function EmbellishmentTool(embellishment, imageUrl) {
+		var self = this;
 
-		self.width.pixelSize = ko.computed(function () {
-			return self.getWidthPixelSize();
+		self.embellishment = embellishment;
+		self.imageUrl = imageUrl ? imageUrl : embellishment.imageDirectory() + 'tool.png';
+		self.selected = ko.observable(false);
+
+		self.title = ko.computed(function () {
+			return self.embellishment.name();
 		});
 
-		self.height.pixelSize = ko.computed(function () {
-			return self.getHeightPixelSize();
+		self.applyToTile = function (tile) {
+			tile.mapViewModel.changeTileEmbellishment(tile, self.embellishment);
+		};
+	};
+
+	function TerrainTool(terrain, imageUrl) {
+		var self = this;
+
+		self.terrain = terrain;
+		self.imageUrl = imageUrl ? imageUrl : terrain.imageDirectory + 'tool.png';
+		self.selected = ko.observable(false);
+
+		self.title = ko.computed(function () {
+			return self.terrain.name;
 		});
 
+		self.applyToTile = function (tile) {
+			tile.mapViewModel.changeTileTerrain(tile, terrain);
+		};
 	};
 
-	CreateMapViewModel.prototype = {
-		create: function () {
-			try {
-				var map = this.generateMap();
-				var context = _getNewMapContext();
-
-				context.saveMap(map);
-				window.location = '/Map/Edit/' + map.id;
-			}
-			catch (ex) {
-				var message = ex.name == 'QUOTA_EXCEEDED_ERR' ? 'Not enough room left to save this map :(' : 'Couldn\'t save the maps';
-				alert(message);
-			}
-		},
-
-		generateNewDefaultTitle: function () {
-			return 'undefined';
-		},
-
-		getHeightPixelSize: function () {
-			var self = this;
-			var height = (+self.height.tileCount() + .5) * +self.tileDiameter();
-
-			return height;
-		},
-
-		getWidthPixelSize: function () {
-			var self = this;
-			var width = (.25 * +self.tileDiameter()) + (.75 * +self.tileDiameter() * +self.width.tileCount());
-
-			return width;
-		},
-
-		generateMap: function () {
-			var map = {};
-
-			map.name = this.title();
-			map.title = this.title();
-			map.tileDiameter = this.tileDiameter();
-			map.tiles = this.generateTiles(this.width.tileCount(), this.height.tileCount(), this.tileDiameter(), this.defaultTerrain(), this.defaultEmbellishment());
-
-			return map;
-		},
-
-		generateTiles: function (width, height, diameter, defaultTerrain, defaultEmbellishment) {
-			var self = this;
-			var tiles = [];
-			var terrainId = defaultTerrain ? defaultTerrain.id : null;
-			var embellishmentId = defaultEmbellishment ? defaultEmbellishment.id() : null;
-			var xCartesian, yCartesian;
-
-			for (var xIndex = 0; xIndex < width; xIndex++) {
-				xCartesian = .75 * diameter * xIndex;
-				var isEvenRow = xIndex % 2 == 1; // yes, if it's equal to 1, the first row is index 0, not index 1
-
-				for (var yIndex = 0; yIndex < height; yIndex++) {
-					yCartesian = diameter * yIndex;
-
-					if (isEvenRow) {
-						yCartesian += diameter * .5;
-					}
-
-					tiles.push(self.generateTileData(xCartesian, yCartesian, terrainId, embellishmentId));
-				}
-			}
-
-			return tiles;
-		},
-
-		generateTileData: function (x, y, terrainId, embellishmentId) {
-			return {
-				x: x,
-				y: y,
-				terrainId: terrainId,
-				embellishmentId: embellishmentId
-			};
-		}
-	};
+	function MapPageModelFactory() { };
 
 	MapPageModelFactory.prototype = {
 		constructCreateMapModel: function () {
