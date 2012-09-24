@@ -712,14 +712,22 @@ tg.factories.mapEntityFactory =
 
 				maps = maps ? maps : [];
 
+				maps = _.map(maps, function (map) {
+					return self._expandMap(map);
+				});
+
 				return maps;
 			},
 
 			getMapById: function (mapId) {
-				return _.find(this.getMaps(), function (m) { return m.id === mapId; });
+				return _.find(this.getMaps(), function (m) {
+					return m.id === mapId;
+				});
 			},
 
 			saveMap: function (map) {
+				var self = this;
+
 				if (!map.id) {
 					map.id = this.getNextMapId();
 				}
@@ -734,7 +742,11 @@ tg.factories.mapEntityFactory =
 					maps.push(map);
 				}
 
-				this._saveMaps(maps);
+				maps = _.map(maps, function (map) {
+					return self._collapseMap(map);
+				});
+
+				self._saveMaps(maps);
 
 				return map;
 			},
@@ -774,6 +786,58 @@ tg.factories.mapEntityFactory =
 				}
 
 				return embellishments;
+			},
+
+			_expandMap: function (data) {
+				var self = this;
+				var map = {};
+
+				for (var i in data) {
+					if (i == 'tiles') {
+						map[i] = _.map(data[i], function (tile) {
+							return self._expandTile(tile);
+						});
+					}
+					else {
+						map[i] = data[i];
+					}
+				}
+
+				return map;
+			},
+
+			_expandTile: function (tileData) {
+				var tile = {};
+				tileData = tileData.split('|');
+
+				tile.x = +tileData[0];
+				tile.y = +tileData[1];
+				tile.terrainId = tileData[2];
+				tile.embellishmentId = tileData[3];
+
+				return tile;
+			},
+
+			_collapseMap: function (map) {
+				var self = this;
+				var data = {};
+
+				for (var i in map) {
+					if (i == 'tiles') {
+						data[i] = _.map(map.tiles, function (tile) {
+							return self._collapseTileStructure(tile);
+						});
+					}
+					else {
+						data[i] = map[i];
+					}
+				}
+
+				return data;
+			},
+
+			_collapseTileStructure: function (tile) {
+				return tile.x.toString() + '|' + tile.y.toString() + '|' + tile.terrainId.toString() + '|' + (tile.embellishmentId ? tile.embellishmentId : '').toString();
 			},
 
 			_initializeTerrains: function () {
