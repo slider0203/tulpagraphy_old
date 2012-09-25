@@ -1,5 +1,5 @@
-﻿$(function () {
-	var vm = tg.factories.pageModelFactory.constructCreateMapModel();
+﻿$(function() {
+    var vm = tg.factories.pageModelFactory.constructCreateMapModel();
 
-	ko.applyBindings(vm);
+    ko.applyBindings(vm);
 });
