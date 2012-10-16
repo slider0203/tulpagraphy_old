@@ -18,7 +18,7 @@ tg.factories.pageModelFactory =
 		});
 
 		self.defaultTerrain = ko.observable(_.find(terrains, function (terrain) {
-			return terrain.name == 'Grass'
+			return terrain.name == 'Grass';
 		}));
 
 		self.embellishments = _.sortBy(
@@ -30,7 +30,7 @@ tg.factories.pageModelFactory =
 
 		self.defaultEmbellishment = ko.observable(null);
 		self.title = ko.observable(self.generateNewDefaultTitle());
-		self.tileDiameter = ko.observable(72);
+		self.tileDiameter = ko.observable(192);
 
 		self.width = {
 			tileCount: ko.observable(40),
@@ -266,7 +266,7 @@ tg.factories.pageModelFactory =
 			return {
 				height: parseInt(newHeight),
 				width: parseInt(newWidth)
-			}
+			};
 		};
 
 		self.adjustCanvasSize = function () {
