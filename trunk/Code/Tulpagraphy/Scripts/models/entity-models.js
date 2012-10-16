@@ -325,9 +325,7 @@ tg.factories.mapEntityFactory =
             self.observers = { };
             self.points = data.points;
             self.layerData = { };
-        }
-
-        ;
+        };
 
         TileViewModel.prototype = {
             x: function() {
@@ -371,9 +369,7 @@ tg.factories.mapEntityFactory =
             }
 
             mapViewModel.tileTerrainChanged.subscribe(function(tile) { self.handleTerrainChanged(tile, tile.terrain()); });
-        }
-
-        ;
+        };
 
         MapBackgroundLayer.prototype = {
             drawTile: function(tile) {
@@ -422,8 +418,9 @@ tg.factories.mapEntityFactory =
 
                 context.save();
 
+                //Remove translation and rotation to use one image per direction (maybe one image all around and clipped later.
                 context.translate(tile.x() + radius, tile.y() + radius);
-                context.rotate((+surroundingTile.direction) * -(Math.PI / 180));
+                //context.rotate((+surroundingTile.direction) * -(Math.PI / 180));
 
                 context.drawImage(image.element, -radius, -radius, tile.diameter(), tile.diameter());
 
@@ -492,9 +489,7 @@ tg.factories.mapEntityFactory =
             self.mapViewModel.tileEmbellishmentChanged.subscribe(function(tile) { self.handleTileEmbellishmentChanged(tile); });
 
             _.each(self.mapViewModel.tiles(), function(tile) { self.refreshTile(tile); });
-        }
-
-        ;
+        };
 
         MapEmbellishmentLayer.prototype = {
             initializeTile: function(tile) {
@@ -521,9 +516,10 @@ tg.factories.mapEntityFactory =
                     } else {
                         context = context == null ? self.canvas.getContext('2d') : context;
 
+                        //TODO: Replace hard coded 192 with tile size
                         context.drawImage(tile.embellishment().images[imageNumber].element,
-                            tile.x() - tile.embellishment().images[imageNumber].element.width * .20,
-                            tile.y() - tile.embellishment().images[imageNumber].element.height * .20,
+                            tile.x() - ((tile.embellishment().images[imageNumber].element.width - 192) / 2),
+                            tile.y() - ((tile.embellishment().images[imageNumber].element.height - 192) / 2),
                             tile.embellishment().images[imageNumber].element.width,
                             tile.embellishment().images[imageNumber].element.height);
                     }
@@ -613,9 +609,7 @@ tg.factories.mapEntityFactory =
             for (var i = 1; i <= number; i++) {
                 self.images.push(new MapImage(imageDirectory + i + '.png'));
             }
-        }
-
-        ;
+        };
 
         function Terrain(id, name, fill, imageDirectory, zIndex, number) {
             var self = this;
@@ -628,35 +622,60 @@ tg.factories.mapEntityFactory =
             self.northOverlayImage = new MapImage(imageDirectory + 'overlay-medium-n.png');
             self.northEastOverlayImage = new MapImage(imageDirectory + 'overlay-medium-ne.png');
             self.northWestOverlayImage = new MapImage(imageDirectory + 'overlay-medium-nw.png');
+            self.southOverlayImage = new MapImage(imageDirectory + 'overlay-medium-s.png');
+            self.southEastOverlayImage = new MapImage(imageDirectory + 'overlay-medium-se.png');
+            self.southWestOverlayImage = new MapImage(imageDirectory + 'overlay-medium-sw.png');
             self.images = [];
 
             for (var i = 1; i <= number; i++) {
                 self.images.push(new MapImage(imageDirectory + i + '.png'));
             }
-        }
-
-        ;
+        };
 
         Terrain.prototype = {
-            getOverlayImage: function(direction) {
+            getOverlayImage: function (direction) {
                 var self = this;
 
                 var image;
-                direction = direction % 360;
-                direction = (direction / 60) | 0;
-                direction = direction % 3;
-
                 switch (direction) {
-                case 0:
-                    image = self.northEastOverlayImage;
-                    break;
-                case 1:
-                    image = self.northOverlayImage;
-                    break;
-                case 2:
-                    image = self.northWestOverlayImage;
-                    break;
+                    case 90:
+                        image = self.southOverlayImage;
+                        break;
+                    case 150:
+                        image = self.southEastOverlayImage;
+                        break;
+                    case 30:
+                        image = self.southWestOverlayImage;
+                        break;
+                    case 210:
+                        image = self.northEastOverlayImage;
+                        break;
+                    case 330:
+                        image = self.northWestOverlayImage;
+                        break;
+                    case 270:
+                        image = self.northOverlayImage;
+                        break;
                 }
+
+                //TODO: Get one image for each direction
+
+//                var image;
+//                direction = direction % 360;
+//                direction = (direction / 60) | 0;
+//                direction = direction % 3;
+
+//                switch (direction) {
+//                case 0:
+//                    image = self.northEastOverlayImage;
+//                    break;
+//                case 1:
+//                    image = self.northOverlayImage;
+//                    break;
+//                case 2:
+//                    image = self.northWestOverlayImage;
+//                    break;
+//                }
 
                 return image;
             }
@@ -846,12 +865,12 @@ tg.factories.mapEntityFactory =
             _initializeTerrains: function() {
                 terrains = [
 				//Water and Beach
-                    new Terrain('ocean', 'Ocean', 'blue', '/Content/Images/Terrain/Ocean/', 50, 15),
-                    new Terrain('coast', 'Coast', 'lightblue', '/Content/Images/Terrain/Coast/', 100, 15),
+                    new Terrain('ocean', 'Ocean', 'blue', '/Content/Images/Terrain/Ocean/', 150, 1),
+                    new Terrain('coast', 'Coast', 'lightblue', '/Content/Images/Terrain/Coast/', 100, 1),
                     new Terrain('beach', 'Beach', 'yellow', '/Content/Images/Terrain/Beach/', 150, 8),
 				//Dirt
                     new Terrain('drydirt', 'Dry Dirt', 'brown', '/Content/Images/Terrain/Dirt/Dry/', 300, 7),
-                    new Terrain('dirt', 'Dirt', 'brown', '/Content/Images/Terrain/Dirt/', 250, 7),
+                    new Terrain('dirt', 'Dirt', 'brown', '/Content/Images/Terrain/Dirt/', 250, 1),
                     new Terrain('wetdirt', 'Wet Dirt', 'brown', '/Content/Images/Terrain/Dirt/Wet/', 200, 7),
 				//Road
                     new Terrain('mossyroad', 'Mossy Road', 'brown', '/Content/Images/Terrain/Road/Mossy/', 550, 2),
@@ -874,7 +893,7 @@ tg.factories.mapEntityFactory =
             _initializeEmbellishments: function() {
                 embellishments = [
                     new Embellishment('', 'Clear', '/Content/Images/Embellishments/Clear/', 500, 1),
-                    new Embellishment('forest', 'Deciduous Forest', '/Content/Images/Embellishments/Forest/Deciduous/Campaign/', 500, 9),
+                    new Embellishment('forest', 'Deciduous Forest', '/Content/Images/Embellishments/Forest/Deciduous/', 500, 4),
                     new Embellishment('densetropic', 'Dense Tropical', '/Content/Images/Embellishments/Forest/Tropical-Dense/', 500, 9),
                     new Embellishment('mediumtropic', 'Medium Tropical', '/Content/Images/Embellishments/Forest/Tropical-Medium/', 500, 6),
                     new Embellishment('sparsetropic', 'Sparse Tropical', '/Content/Images/Embellishments/Forest/Tropical-Sparse/', 500, 9),
@@ -882,7 +901,7 @@ tg.factories.mapEntityFactory =
                     new Embellishment('reef', 'Ocean Reef', '/Content/Images/Embellishments/Ocean/Reef/', 500, 4),
                     new Embellishment('rock', 'Rocks', '/Content/Images/Embellishments/Rocks/', 500, 14),
                     new Embellishment('pinetree', 'Pine Tree', '/Content/Images/Embellishments/Encounter/Pine Tree/', 500, 3),
-                    new Embellishment('tree', 'Tree', '/Content/Images/Embellishments/Encounter/Tree/', 500, 6),
+                    new Embellishment('tree', 'Tree', '/Content/Images/Embellishments/Encounter/Tree/', 500, 7),
                     new Embellishment('ewwall', 'E-W Wall', '/Content/Images/Embellishments/Wall/Full/E-W/', 200, 1),
                     new Embellishment('ewwall2', 'E-W Wall 2', '/Content/Images/Embellishments/Wall/Full/E-W2/', 200, 1),
                     new Embellishment('nswall', 'N-S Wall', '/Content/Images/Embellishments/Wall/Full/N-S/', 200, 1),
@@ -912,9 +931,8 @@ tg.factories.mapEntityFactory =
         };
 
         function MapFactory() {
-        }
-
-        ;
+        };
+        
         MapFactory.prototype = {
             constructMapContext: function(options) {
                 return new MapContext(options);
