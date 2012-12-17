@@ -25,10 +25,30 @@
 
 #controls #grid-opacity-slider .ui-slider-handle
 {
-	border: 2px solid orange;
+	border-top: 2px solid rgba(3, 156, 202, .5);
+	border-left: 2px solid rgba(3, 156, 202, .5);
+	border-right: 2px solid rgba(2, 100, 129, .5);
+	border-bottom: 2px solid rgba(2, 100, 129, .5);
 	border-radius: 2px;
-	background: rgba(255, 255, 255, .3);
+	background: rgb(4, 134, 173);
 }
+
+#controls #scale-slider
+{
+	border: 2px solid steelblue;
+	background: aliceblue;
+	border-radius: 2px;
+	width: 150px;
+	display:inline-block;
+}
+
+#controls #scale-slider .ui-slider-handle
+{
+	border: 2px solid rgb(4, 134, 173);
+	border-radius: 2px;
+	background: rgba(4, 134, 173, .5);
+}
+
 
 /* Map Styles */
 #map 
