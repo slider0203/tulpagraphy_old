@@ -851,7 +851,7 @@ tg.factories.mapEntityFactory =
     			//Road
                     new Terrain('mossyroad', 'Gray Road', 'brown', '/Content/Images/Terrain/GrayRoad/', 550, 1),
                     new Terrain('road', 'Brown Road', 'gray', '/Content/Images/Terrain/BrownRoad/', 550, 1),
-                    new Terrain('cleanroad', 'Stone Tiles', 'gray', '/Content/Images/Terrain/StoneTile/', 500, 1),
+                    new Terrain('cleanroad', 'Stone Tiles', 'gray', '/Content/Images/Terrain/StoneTile/', 550, 1),
     			//Grass
                     new Terrain('grass', 'Grass', 'green', '/Content/Images/Terrain/Grass/', 700, 1),
                     new Terrain('simidrygrass', 'Simi-Dry Grass', 'green', '/Content/Images/Terrain/Simi-Dry/', 750, 1),
