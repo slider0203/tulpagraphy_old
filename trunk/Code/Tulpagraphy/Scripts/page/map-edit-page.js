@@ -1,103 +1,120 @@
-﻿$(function() {
-    function getId() {
-        var id, temp;
+﻿$(function () {
+	function getId() {
+		var id, temp;
 
-        temp = window.location.href;
+		temp = window.location.href;
 
-        if (temp) {
-            if (temp.lastIndexOf('/') == temp.length - 1) {
-                temp = temp.substring(0, temp.length - 1);
-            }
-            temp = temp.split('/');
+		if (temp) {
+			if (temp.lastIndexOf('/') == temp.length - 1) {
+				temp = temp.substring(0, temp.length - 1);
+			}
+			temp = temp.split('/');
 
-            if (temp) {
-                temp = temp[temp.length - 1];
+			if (temp) {
+				temp = temp[temp.length - 1];
 
-                if (temp && !temp.match( /\D/ )) {
-                    id = parseInt(temp);
-                }
-            }
-        }
+				if (temp && !temp.match(/\D/)) {
+					id = parseInt(temp);
+				}
+			}
+		}
 
-        return id;
-    };
+		return id;
+	};
 
-    function constructBackgroundLayer(map, mapFactory) {
-        mapFactory.constructMapBackgroundLayer(map, $("canvas.background-layer")[0]);
-    };
+	function constructBackgroundLayer(map, mapFactory) {
+		mapFactory.constructMapBackgroundLayer(map, $("canvas.background-layer")[0]);
+	};
 
-    function constructEmbellishmentLayer(map, mapFactory) {
-        mapFactory.constructMapEmbellishmentLayer(map, $("canvas.embellishment-layer")[0]);
-    };
+	function constructEmbellishmentLayer(map, mapFactory) {
+		mapFactory.constructMapEmbellishmentLayer(map, $("canvas.embellishment-layer")[0]);
+	};
 
-    function constructSelectionLayer(map, mapFactory) {
-        var $selectionLayer = $('svg.selection-layer');
-        var tileGroup = tg.make.svgElement('g', { class: 'active-tiles' });
+	function constructSelectionLayer(map, mapFactory) {
+		var $selectionLayer = $('svg.selection-layer');
+		var tileGroup = tg.make.svgElement('g', { class: 'active-tiles' });
 
-        $selectionLayer.css('height', ((map.height().pixelSize()).toString() + 'px'));
-        $selectionLayer.css('width', ((map.width().pixelSize()).toString() + 'px'));
+		$selectionLayer.css('height', ((map.height().pixelSize()).toString() + 'px'));
+		$selectionLayer.css('width', ((map.width().pixelSize()).toString() + 'px'));
 
-        var points = map.pointsString();
+		var points = map.pointsString();
 
-        _.chain(map.tiles()).map(function(tile) {
-            return tg.make.svgElement('polygon', {
-                'points': points,
-                'transform': 'translate(' + tile.x() + ', ' + tile.y() + ')',
-                'data-x': tile.xIndex,
-                'data-y': tile.yIndex
-            });
-        }).each(function(tile) {
-            tileGroup.appendChild(tile);
-        });
+		_.chain(map.tiles()).map(function (tile) {
+			return tg.make.svgElement('polygon', {
+				'points': points,
+				'transform': 'translate(' + tile.x() + ', ' + tile.y() + ')',
+				'data-x': tile.xIndex,
+				'data-y': tile.yIndex
+			});
+		}).each(function (tile) {
+			tileGroup.appendChild(tile);
+		});
 
-        $selectionLayer[0].appendChild(tileGroup);
-        $selectionLayer.on('mousedown', '.active-tiles > polygon', function(e) { map.onMouseDownOnTile($(this), e); });
-        $selectionLayer.on('mousemove', '.active-tiles > polygon', function(e) {
-            window.tweakMouseEvent(e);
-            return !map.onMouseOverTile($(this), e);
-        });
-        $selectionLayer[0].normalize();
-    };
+		$selectionLayer[0].appendChild(tileGroup);
+		$selectionLayer.on('mousedown', '.active-tiles > polygon', function (e) { map.onMouseDownOnTile($(this), e); });
+		$selectionLayer.on('mousemove', '.active-tiles > polygon', function (e) {
+			window.tweakMouseEvent(e);
+			return !map.onMouseOverTile($(this), e);
+		});
+		$selectionLayer[0].normalize();
 
-    // well, this is one way to do it...
+		function bla() { onScaleFactorChanged(map); };
 
-    function initialize(map) {
-        map.loading(true);
+		map.scaleFactor.subscribe(bla);
+	};
 
-        map.loadingMessage('Loading background layer');
-        setTimeout(function() {
-            constructBackgroundLayer(map, tg.factories.mapEntityFactory);
+	// well, this is one way to do it...
 
-            map.loadingMessage('Loading embellishment layer');
-            setTimeout(function() {
-                constructEmbellishmentLayer(map, tg.factories.mapEntityFactory);
+	function initialize(map) {
+		map.loading(true);
 
-                map.loadingMessage('Loading interaction layer');
-                setTimeout(function() {
-                    constructSelectionLayer(map, tg.factories.mapEntityFactory);
-                    editableMap.loading(false);
-                }, 100);
-            }, 100);
-        }, 100);
-    };
+		map.loadingMessage('Loading background layer');
+		setTimeout(function () {
+			constructBackgroundLayer(map, tg.factories.mapEntityFactory);
 
-    var map;
+			map.loadingMessage('Loading embellishment layer');
+			setTimeout(function () {
+				constructEmbellishmentLayer(map, tg.factories.mapEntityFactory);
 
-    try {
-        var mapId = getId();
+				map.loadingMessage('Loading interaction layer');
+				setTimeout(function () {
+					constructSelectionLayer(map, tg.factories.mapEntityFactory);
+					editableMap.loading(false);
+				}, 100);
+			}, 100);
+		}, 100);
+	};
 
-        if (!mapId) {
-            throw { Message: 'No map to load.' };
-        } else {
-            map = tg.factories.mapEntityFactory.constructMapViewModel(mapId);
-        }
-    } catch(ex) {
-        alert(ex.Message + '  Let\'s see what maps you do have.');
-        tg.redirect('*map-index');
-    }
+	function onScaleFactorChanged(map) {
+		var scaleFactor = map.scaleFactor();
+		var newHeight = (map.height().pixelSize() * scaleFactor);
+		var newWidth = (map.width().pixelSize() * scaleFactor);
+		var cssSize = { 'height': newHeight.toString() + 'px', 'width': newWidth.toString() + 'px' };
 
-    var editableMap = tg.factories.pageModelFactory.constructEditMapModel(map);
-    ko.applyBindings(editableMap);
+		$('.active-tiles').attr('transform', 'scale(' + scaleFactor + ')');
 
-    initialize(editableMap);
+		$('svg.selection-layer').css(cssSize);
+		$('#mapContainer canvas').css(cssSize);
+		$('#mapContainer .map.view').css(cssSize);
+	};
+
+	var map;
+
+	try {
+		var mapId = getId();
+
+		if (!mapId) {
+			throw { Message: 'No map to load.' };
+		} else {
+			map = tg.factories.mapEntityFactory.constructMapViewModel(mapId);
+		}
+	} catch (ex) {
+		alert(ex.Message + '  Let\'s see what maps you do have.');
+		tg.redirect('*map-index');
+	}
+
+	var editableMap = tg.factories.pageModelFactory.constructEditMapModel(map);
+	ko.applyBindings(editableMap);
+
+	initialize(editableMap);
 });

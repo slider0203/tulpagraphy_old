@@ -13,6 +13,8 @@
         <input type="text" data-bind="value: name, disable: loading" name="map-name" id="map-name" class="map-name"/>        
         <label for="grid-opacity-slider">Grid Opacity: </label>
         <div id="grid-opacity-slider" data-bind="slider: { value: gridOpacity, max: 1,  min: 0, step: .05 }"></div>
+        <label for="scale-slider">Scale: </label>
+        <div id="scale-slider" data-bind="slider: { value: scaleFactor, max: 2,  min: .5, step: .05 }"></div>
         <section class="rightAlign">
             <a class="button save" href="#" data-bind="click: saveMap">Save</a>
             <a class="button showPrintImageButton" href="#" data-bind="click: printImageModel.show">Print Image</a>                        

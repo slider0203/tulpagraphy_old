@@ -51,7 +51,10 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="simpleHangoutApp.xml" />
+    <Content Include="wp-includes\css\tulpaverse.css" />
+    <Content Include="tulpaverse.xml">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
