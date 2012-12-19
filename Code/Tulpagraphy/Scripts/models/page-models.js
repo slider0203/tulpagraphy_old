@@ -25,8 +25,8 @@ tg.factories.pageModelFactory =
 			_.filter(embellishments, function (embellishment) {
 				return embellishment.name() != "Clear" && !embellishment.name().match(/wall/gi);
 			}), function (embellishment) {
-			return embellishment.name();
-		});
+				return embellishment.name();
+			});
 
 		self.defaultEmbellishment = ko.observable(null);
 		self.title = ko.observable(self.generateNewDefaultTitle());
@@ -144,8 +144,11 @@ tg.factories.pageModelFactory =
 		self.tiles = mapViewModel.tiles;
 		self.tileTerrainChanged = mapViewModel.tileTerrainChanged;
 		self.tileEmbellishmentChanged = mapViewModel.tileEmbellishmentChanged;
+		self.scaleFactor = mapViewModel.scaleFactor;
+
 		$printImagePopup = $('.export-image-viewport');
 		self.printImageModel = new PrintImageViewModel($printImagePopup, self.originalModel, $('.map.view'), $('.image-canvas')[0], { gridOpacity: this.gridOpacity });
+
 
 		self.pointsString = function () {
 			return self.originalModel.pointsString();
