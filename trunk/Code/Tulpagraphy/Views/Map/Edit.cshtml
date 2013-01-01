@@ -22,7 +22,8 @@
     </section>
     <section id="map">
         <section class="map-container" id="mapContainer">
-                <div class="map view" data-bind="style: { height: height().pixelSize() + 'px', width: width().pixelSize() + 'px' }">
+                <div class="map view" data-bind="style: { 'height': (height().pixelSize() * scaleFactor()).toString() + 'px',
+			'width': (width().pixelSize() * scaleFactor()).toString() + 'px' }">
                     <canvas class="background-layer" data-bind="attr: { height: height().pixelSize() + 'px', width: width().pixelSize() + 'px' }"></canvas>
                     <canvas class="embellishment-layer" data-bind="attr: { height: height().pixelSize() + 'px', width: width().pixelSize() + 'px' }"></canvas>
                     <svg class="selection-layer" xmlns="http://www.w3.org/2000/svg" version="1.1" data-bind="style: { 'stroke-opacity': gridOpacity }">
