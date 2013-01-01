@@ -34,9 +34,6 @@
 		var $selectionLayer = $('svg.selection-layer');
 		var tileGroup = tg.make.svgElement('g', { class: 'active-tiles' });
 
-		$selectionLayer.css('height', ((map.height().pixelSize()).toString() + 'px'));
-		$selectionLayer.css('width', ((map.width().pixelSize()).toString() + 'px'));
-
 		var points = map.pointsString();
 
 		_.chain(map.tiles()).map(function (tile) {
@@ -78,7 +75,8 @@
 
 				map.loadingMessage('Loading interaction layer');
 				setTimeout(function () {
-					constructSelectionLayer(map, tg.factories.mapEntityFactory);
+				    constructSelectionLayer(map, tg.factories.mapEntityFactory);
+				    onScaleFactorChanged(map);
 					editableMap.loading(false);
 				}, 100);
 			}, 100);
@@ -87,15 +85,8 @@
 
 	function onScaleFactorChanged(map) {
 		var scaleFactor = map.scaleFactor();
-		var newHeight = (map.height().pixelSize() * scaleFactor);
-		var newWidth = (map.width().pixelSize() * scaleFactor);
-		var cssSize = { 'height': newHeight.toString() + 'px', 'width': newWidth.toString() + 'px' };
 
 		$('.active-tiles').attr('transform', 'scale(' + scaleFactor + ')');
-
-		$('svg.selection-layer').css(cssSize);
-		$('#mapContainer canvas').css(cssSize);
-		$('#mapContainer .map.view').css(cssSize);
 	};
 
 	var map;
